@@ -1,0 +1,38 @@
+[
+  {
+    "name": "requirements met",
+    "expect": "pass",
+    "facts": {
+      "recorded": true,
+      "backlog": true,
+      "fullySucceeded": true
+    }
+  },
+  {
+    "name": "recorded is missing",
+    "expect": "fail",
+    "facts": {
+      "recorded": false,
+      "backlog": true,
+      "fullySucceeded": true
+    }
+  },
+  {
+    "name": "backlog is missing",
+    "expect": "fail",
+    "facts": {
+      "recorded": true,
+      "backlog": false,
+      "fullySucceeded": true
+    }
+  },
+  {
+    "name": "fullySucceeded is missing",
+    "expect": "fail",
+    "facts": {
+      "recorded": true,
+      "backlog": true,
+      "fullySucceeded": false
+    }
+  }
+]

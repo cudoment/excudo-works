@@ -1,0 +1,17 @@
+name: Usability feedback
+description: Explain where the routine made your work harder.
+body:
+  - type: textarea
+    id: task
+    attributes:
+      label: What were you trying to do?
+      description: Describe the task and the point where the workflow became unclear.
+    validations:
+      required: true
+  - type: textarea
+    id: feedback
+    attributes:
+      label: Reviewed feedback draft
+      description: Run excudo-works feedback and remove private details before sharing the output.
+    validations:
+      required: true

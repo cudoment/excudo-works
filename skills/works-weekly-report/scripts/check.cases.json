@@ -1,0 +1,38 @@
+[
+  {
+    "name": "requirements met",
+    "expect": "pass",
+    "facts": {
+      "markers": true,
+      "tasksMatch": true,
+      "decisionsKept": true
+    }
+  },
+  {
+    "name": "markers is missing",
+    "expect": "fail",
+    "facts": {
+      "markers": false,
+      "tasksMatch": true,
+      "decisionsKept": true
+    }
+  },
+  {
+    "name": "tasksMatch is missing",
+    "expect": "fail",
+    "facts": {
+      "markers": true,
+      "tasksMatch": false,
+      "decisionsKept": true
+    }
+  },
+  {
+    "name": "decisionsKept is missing",
+    "expect": "fail",
+    "facts": {
+      "markers": true,
+      "tasksMatch": true,
+      "decisionsKept": false
+    }
+  }
+]

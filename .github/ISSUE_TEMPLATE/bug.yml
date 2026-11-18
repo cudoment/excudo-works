@@ -1,0 +1,17 @@
+name: Bug report
+description: Report an unexpected result in the daily routine.
+body:
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+      description: Include the smallest steps that reproduce the issue.
+    validations:
+      required: true
+  - type: textarea
+    id: feedback
+    attributes:
+      label: Reviewed diagnostic output
+      description: Run excudo-works feedback and remove private details before pasting the draft.
+    validations:
+      required: true

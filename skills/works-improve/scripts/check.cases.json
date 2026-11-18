@@ -1,0 +1,38 @@
+[
+  {
+    "name": "requirements met",
+    "expect": "pass",
+    "facts": {
+      "requestRecorded": true,
+      "commandsReviewable": true,
+      "noAutomaticMerge": true
+    }
+  },
+  {
+    "name": "requestRecorded is missing",
+    "expect": "fail",
+    "facts": {
+      "requestRecorded": false,
+      "commandsReviewable": true,
+      "noAutomaticMerge": true
+    }
+  },
+  {
+    "name": "commandsReviewable is missing",
+    "expect": "fail",
+    "facts": {
+      "requestRecorded": true,
+      "commandsReviewable": false,
+      "noAutomaticMerge": true
+    }
+  },
+  {
+    "name": "noAutomaticMerge is missing",
+    "expect": "fail",
+    "facts": {
+      "requestRecorded": true,
+      "commandsReviewable": true,
+      "noAutomaticMerge": false
+    }
+  }
+]

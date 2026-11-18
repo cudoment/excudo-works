@@ -1,0 +1,38 @@
+[
+  {
+    "name": "requirements met",
+    "expect": "pass",
+    "facts": {
+      "snapshotKept": true,
+      "conflictsPreserved": true,
+      "policyUsed": true
+    }
+  },
+  {
+    "name": "snapshotKept is missing",
+    "expect": "fail",
+    "facts": {
+      "snapshotKept": false,
+      "conflictsPreserved": true,
+      "policyUsed": true
+    }
+  },
+  {
+    "name": "conflictsPreserved is missing",
+    "expect": "fail",
+    "facts": {
+      "snapshotKept": true,
+      "conflictsPreserved": false,
+      "policyUsed": true
+    }
+  },
+  {
+    "name": "policyUsed is missing",
+    "expect": "fail",
+    "facts": {
+      "snapshotKept": true,
+      "conflictsPreserved": true,
+      "policyUsed": false
+    }
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "before": {
+    "head": "fixture-head",
+    "readOnly": true
+  },
+  "after": {
+    "head": "fixture-head",
+    "readOnly": true,
+    "version": 1
+  }
+}

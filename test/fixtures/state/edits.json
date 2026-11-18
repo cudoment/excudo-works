@@ -1,0 +1,38 @@
+{
+  "before": {
+    "version": 1,
+    "items": [
+      {
+        "id": "pending",
+        "question": "Review this edit"
+      }
+    ],
+    "improvements": [
+      {
+        "id": "request",
+        "text": "Improve labels"
+      }
+    ],
+    "applied": []
+  },
+  "after": {
+    "version": 2,
+    "items": [
+      {
+        "id": "pending",
+        "question": "Review this edit",
+        "status": "open"
+      }
+    ],
+    "improvements": [
+      {
+        "id": "request",
+        "text": "Improve labels",
+        "status": "open"
+      }
+    ],
+    "applied": [],
+    "revision": 0,
+    "dirtyFiles": []
+  }
+}

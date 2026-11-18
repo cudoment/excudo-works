@@ -1,0 +1,27 @@
+{
+  "before": {
+    "version": 1,
+    "text": "Report\r\n",
+    "tasks": [
+      {
+        "id": "task",
+        "source": "- DOING Plan\r",
+        "file": "notes/Plan.md",
+        "line": 0
+      }
+    ]
+  },
+  "after": {
+    "version": 2,
+    "text": "Report\r\n",
+    "tasks": [
+      {
+        "id": "task",
+        "source": "- DOING Plan",
+        "file": "notes/Plan.md",
+        "line": 0
+      }
+    ],
+    "generation": 0
+  }
+}

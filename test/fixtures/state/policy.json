@@ -1,0 +1,15 @@
+{
+  "before": {
+    "applyTaskEdits": true,
+    "allowCompletion": false,
+    "comments": "judge",
+    "ownerRule": "Preserve meaning"
+  },
+  "after": {
+    "applyTaskEdits": true,
+    "allowCompletion": false,
+    "comments": "judge",
+    "ownerRule": "Preserve meaning",
+    "version": 1
+  }
+}

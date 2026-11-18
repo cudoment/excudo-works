@@ -1,0 +1,38 @@
+[
+  {
+    "name": "requirements met",
+    "expect": "pass",
+    "facts": {
+      "installed": true,
+      "refusesPush": true,
+      "previousHookPreserved": true
+    }
+  },
+  {
+    "name": "installed is missing",
+    "expect": "fail",
+    "facts": {
+      "installed": false,
+      "refusesPush": true,
+      "previousHookPreserved": true
+    }
+  },
+  {
+    "name": "refusesPush is missing",
+    "expect": "fail",
+    "facts": {
+      "installed": true,
+      "refusesPush": false,
+      "previousHookPreserved": true
+    }
+  },
+  {
+    "name": "previousHookPreserved is missing",
+    "expect": "fail",
+    "facts": {
+      "installed": true,
+      "refusesPush": true,
+      "previousHookPreserved": false
+    }
+  }
+]

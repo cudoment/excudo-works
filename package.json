@@ -1,0 +1,23 @@
+{
+  "name": "excudo-works",
+  "version": "0.1.0",
+  "description": "A configurable daily automation routine for an Excudo workspace.",
+  "type": "module",
+  "license": "MIT",
+  "author": "cudoment",
+  "repository": { "type": "git", "url": "git+https://github.com/cudoment/excudo-works.git" },
+  "bugs": { "url": "https://github.com/cudoment/excudo-works/issues" },
+  "engines": { "node": ">=22.16" },
+  "bin": { "excudo-works": "bin/excudo-works.mjs" },
+  "exports": { ".": "./src/index.mjs", "./checks": "./src/skill-check.mjs" },
+  "files": ["bin", "src", "skills", "template", "scripts/push-guard.mjs", "README.md", "README.ko.md", "CHANGELOG.md", "LICENSE"],
+  "scripts": {
+    "test": "node --test --test-concurrency=1 test/*.test.mjs",
+    "changelog": "node scripts/changelog.mjs",
+    "denylist": "node scripts/denylist.mjs",
+    "release:check": "node scripts/release-check.mjs",
+    "prepublishOnly": "node scripts/release-check.mjs"
+  },
+  "peerDependencies": { "excudo": "^0.7.0" },
+  "devDependencies": { "excudo": "^0.7.0" }
+}

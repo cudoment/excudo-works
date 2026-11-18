@@ -1,0 +1,38 @@
+[
+  {
+    "name": "requirements met",
+    "expect": "pass",
+    "facts": {
+      "ordered": true,
+      "workPreserved": true,
+      "ownerControlled": true
+    }
+  },
+  {
+    "name": "ordered is missing",
+    "expect": "fail",
+    "facts": {
+      "ordered": false,
+      "workPreserved": true,
+      "ownerControlled": true
+    }
+  },
+  {
+    "name": "workPreserved is missing",
+    "expect": "fail",
+    "facts": {
+      "ordered": true,
+      "workPreserved": false,
+      "ownerControlled": true
+    }
+  },
+  {
+    "name": "ownerControlled is missing",
+    "expect": "fail",
+    "facts": {
+      "ordered": true,
+      "workPreserved": true,
+      "ownerControlled": false
+    }
+  }
+]

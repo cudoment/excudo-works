@@ -1,0 +1,11 @@
+{
+  "before": {
+    "file": "archive.ewb",
+    "files": 2
+  },
+  "after": {
+    "file": "archive.ewb",
+    "files": 2,
+    "version": 1
+  }
+}

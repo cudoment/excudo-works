@@ -1,0 +1,38 @@
+[
+  {
+    "name": "requirements met",
+    "expect": "pass",
+    "facts": {
+      "encrypted": true,
+      "passwordNotStored": true,
+      "separateRestore": true
+    }
+  },
+  {
+    "name": "encrypted is missing",
+    "expect": "fail",
+    "facts": {
+      "encrypted": false,
+      "passwordNotStored": true,
+      "separateRestore": true
+    }
+  },
+  {
+    "name": "passwordNotStored is missing",
+    "expect": "fail",
+    "facts": {
+      "encrypted": true,
+      "passwordNotStored": false,
+      "separateRestore": true
+    }
+  },
+  {
+    "name": "separateRestore is missing",
+    "expect": "fail",
+    "facts": {
+      "encrypted": true,
+      "passwordNotStored": true,
+      "separateRestore": false
+    }
+  }
+]

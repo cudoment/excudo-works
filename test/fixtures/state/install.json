@@ -1,0 +1,14 @@
+{
+  "before": {
+    "blocks": {
+      "AGENTS.md": "fingerprint"
+    }
+  },
+  "after": {
+    "blocks": {
+      "AGENTS.md": "fingerprint"
+    },
+    "version": 2,
+    "links": []
+  }
+}

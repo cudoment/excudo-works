@@ -1,0 +1,10 @@
+{
+  "version": "0.1.0",
+  "date": "2026-11-17",
+  "changes": [
+    "Add configurable daily runs with timeouts, locking, daily records and a final backlog.",
+    "Preserve direct report edits and comments under an owner-controlled judgment policy.",
+    "Add weekly reports, fixed principles, read-only cross review and optional encrypted backup.",
+    "Ship portable workspace skills, setup diagnostics, offline-tolerant updates and feedback drafts."
+  ]
+}

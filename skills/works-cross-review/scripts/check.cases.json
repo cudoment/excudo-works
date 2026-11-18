@@ -1,0 +1,38 @@
+[
+  {
+    "name": "requirements met",
+    "expect": "pass",
+    "facts": {
+      "report": true,
+      "readOnly": true,
+      "reviewersConfigured": true
+    }
+  },
+  {
+    "name": "report is missing",
+    "expect": "fail",
+    "facts": {
+      "report": false,
+      "readOnly": true,
+      "reviewersConfigured": true
+    }
+  },
+  {
+    "name": "readOnly is missing",
+    "expect": "fail",
+    "facts": {
+      "report": true,
+      "readOnly": false,
+      "reviewersConfigured": true
+    }
+  },
+  {
+    "name": "reviewersConfigured is missing",
+    "expect": "fail",
+    "facts": {
+      "report": true,
+      "readOnly": true,
+      "reviewersConfigured": false
+    }
+  }
+]

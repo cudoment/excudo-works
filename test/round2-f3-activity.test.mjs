@@ -1,0 +1,33 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { workspace } from './helpers.mjs';
+import { gitActivity } from '../src/report.mjs';
+const git = (root, args, env = {}) => { const r = spawnSync('git', args, { cwd: root, encoding: 'utf8', env: { ...process.env, ...env } }); assert.equal(r.status, 0, r.stderr); return r; };
+const as = (name, email) => ({ GIT_AUTHOR_NAME: name, GIT_AUTHOR_EMAIL: email, GIT_COMMITTER_NAME: name, GIT_COMMITTER_EMAIL: email });
+test('F3: the Git fallback lists only the owner commits, skips merges, dedupes worktrees and masks private lines', async t => {
+  const ws = await workspace(t), owner = as('Owner', 'owner@example.invalid'), other = as('Other', 'other@example.invalid');
+  git(ws.root, ['init', '-b', 'main']); git(ws.root, ['config', 'user.email', 'owner@example.invalid']); git(ws.root, ['config', 'user.name', 'Owner']);
+  const commit = (message, env) => { writeFileSync(join(ws.root, 'file.txt'), message); git(ws.root, ['add', '.']); git(ws.root, ['commit', '-m', message], env); };
+  commit('Owner first change', owner); commit('Colleague change', other); commit('Rotate password hunter2', owner);
+  git(ws.root, ['switch', '-c', 'side']); commit('Owner side change', owner); commit('Colleague side change', other); git(ws.root, ['switch', 'main']);
+  git(ws.root, ['merge', '--no-ff', 'side', '-m', 'Merge side branch'], owner);
+  const worktree = join(mkdtempSync(join(tmpdir(), 'works-worktree-')), 'wt'); git(ws.root, ['worktree', 'add', worktree, '-b', 'extra']);
+  writeFileSync(join(ws.root, 'fake-engine.json'), JSON.stringify({ folders: [worktree] }));
+  const { commits } = await gitActivity(ws, new Date(Date.now() + 60000)), texts = commits.map(item => item.text).join('\n');
+  assert.match(texts, /Owner first change/); assert.match(texts, /Owner side change/);
+  assert.doesNotMatch(texts, /Colleague/); assert.doesNotMatch(texts, /Merge side branch/); assert.doesNotMatch(texts, /hunter2/);
+  assert.equal(commits.filter(item => item.text.includes('Owner first change')).length, 1);
+  assert.match(texts, /hidden/);
+});
+test('F3: a repository without an author email yields no fallback commits', async t => {
+  const ws = await workspace(t); git(ws.root, ['init']); writeFileSync(join(ws.root, 'a.txt'), 'x'); git(ws.root, ['add', '.']);
+  git(ws.root, ['-c', 'user.name=A', '-c', 'user.email=a@example.invalid', 'commit', '-m', 'Somebody change']);
+  const empty = join(ws.root, 'empty-global'); writeFileSync(empty, '');
+  const saved = { global: process.env.GIT_CONFIG_GLOBAL, system: process.env.GIT_CONFIG_NOSYSTEM }; process.env.GIT_CONFIG_GLOBAL = empty; process.env.GIT_CONFIG_NOSYSTEM = '1';
+  t.after(() => { for (const [key, value] of [['GIT_CONFIG_GLOBAL', saved.global], ['GIT_CONFIG_NOSYSTEM', saved.system]]) if (value === undefined) delete process.env[key]; else process.env[key] = value; });
+  assert.deepEqual((await gitActivity(ws, new Date(Date.now() + 60000))).commits, []);
+});
