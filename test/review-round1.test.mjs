@@ -100,8 +100,8 @@ test('A5: update migrates edits and records created links for dropped-skill clea
 });
 test('A5: update prints the new release engine peer install', async t => {
   const ws = await workspace(t); await initWorkspace(ws.root);
-  const result = await update(ws, { registry: { code: 0, output: '"0.2.0"' }, registryPeers: { code: 0, output: '{"excudo":"^0.8.0"}' } });
-  assert.match(result.commands.join('\n'), /excudo@.*0\.8\.0/);
+  const result = await update(ws, { registry: { code: 0, output: '"0.3.0"' }, registryPeers: { code: 0, output: '{"excudo":"^0.9.0"}' } });
+  assert.match(result.commands.join('\n'), /excudo@.*0\.9\.0/);
 });
 test('A6: improvement judgment is not re-ingested before the report refresh', async t => {
   const { ws, report } = await setup(t); writeFileSync(report, read(report) + '\n- Question // Make alerts shorter\n'); const pending = await syncEdits(ws), id = pending.items.find(x => x.kind === 'comment').id;

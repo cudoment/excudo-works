@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, mkdirSync, writeFileSync, symlinkSync, lstatSync, readlinkSync, unlinkSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync, writeFileSync, symlinkSync, lstatSync, readlinkSync, unlinkSync, readdirSync, rmdirSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { atomic, inside } from './files.mjs';
 import { engineRun, shellQuote } from './process.mjs';
@@ -56,14 +56,33 @@ export function installSkillLinks(subject, { names = skillNames } = {}) {
     writeState(subject, 'install', state); return results;
   });
 }
+// True when the engine command could not be started at all, as opposed to an engine that ran and failed.
+export const engineMissing = ({ code, output = '' }) => code === 127 || /could not determine executable|npx canceled|missing packages|\bE404\b/i.test(String(output));
+// The README Start order for a folder that has no engine yet.
+export const startCommands = (folder, locale) => [
+  `npx -y excudo@${packageInfo().peerDependencies.excudo} init ${shellQuote(folder)} --locale ${locale}`,
+  `cd ${shellQuote(folder)}`,
+  'npm install',
+  'git init',
+  'npx --no-install excudo start --report --json',
+  `npm install --save-dev excudo-works@^${packageInfo().version}`,
+  `npx --no-install excudo-works init . --locale ${locale}`,
+];
 export async function initWorkspace(folder, { locale = 'en', force = false } = {}) {
-  if (!['en', 'ko'].includes(locale)) throw new Error('Use --locale en or ko.');
-  const root = resolve(folder); mkdirSync(root, { recursive: true });
+  if (!['en', 'ko'].includes(locale)) throw new Error('Use --locale en or ko; use en for any other language.');
+  const root = resolve(folder), existed = existsSync(root);
+  mkdirSync(root, { recursive: true });
   const commands = [], created = [], preserved = [];
   if (!existsSync(join(root, 'excudo.config.mjs'))) {
     // Run from the caller so an installed local engine can initialize a new folder.
     const result = await engineRun(process.cwd(), ['init', root, '--locale', locale], { timeoutMs: 60000 });
-    if (result.code !== 0) return { ok: false, root, commands: [`npx excudo init ${shellQuote(root)} --locale ${locale}`], detail: 'Engine initialization is needed; run the command and retry.' };
+    if (result.code !== 0) {
+      // Leave no empty folder behind that this call created.
+      if (!existed) try { if (readdirSync(root).length === 0) rmdirSync(root); } catch {}
+      const output = String(result.output ?? '').slice(-2000);
+      if (!engineMissing(result)) return { ok: false, root, reason: 'engine-failed', commands: [], detail: 'The engine was found but its initialization failed. Fix the error below, then run this command again.', output };
+      return { ok: false, root, reason: 'no-engine', commands: startCommands(folder, locale), detail: 'No engine was found. Run these commands in order, the same as "Start" in the README; the first creates the workspace with the engine and the rest add the kit inside it.', output };
+    }
   }
   const ws = await loadConfig(root); locale = ws.locale;
   return withWorkspaceLock(ws, () => {
@@ -81,8 +100,12 @@ export async function initWorkspace(folder, { locale = 'en', force = false } = {
   }
   put(ws.config.invariants, `${JSON.stringify({ version: 1, text: principlesText(text) }, null, 2)}\n`);
   const links = installSkillLinks(ws);
-  if (!existsSync(join(root, 'node_modules/excudo-works/package.json'))) commands.push(`npm install --save-dev excudo-works@^${packageInfo().version}`);
-  if (!existsSync(join(root, 'node_modules/excudo/package.json'))) commands.push('npm install');
+  // Keep an older recorded version: update still owes the owner the actions of the releases in between.
+  { const state = readState(ws, 'install'); if (!state.kitVersion) writeState(ws, 'install', { ...state, kitVersion: packageInfo().version }); }
+  // The install runs in the workspace, so name it whenever that is not the folder the user is in.
+  const inWorkspace = command => root === resolve(process.cwd()) ? command : `cd ${shellQuote(root)} && ${command}`;
+  if (!existsSync(join(root, 'node_modules/excudo-works/package.json'))) commands.push(inWorkspace(`npm install --save-dev excudo-works@^${packageInfo().version}`));
+  if (!existsSync(join(root, 'node_modules/excudo/package.json'))) commands.push(inWorkspace('npm install'));
   return { ok: true, root, created, preserved, instructions, links, commands };
   });
 }

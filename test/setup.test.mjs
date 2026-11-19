@@ -30,14 +30,14 @@ test('doctor handles the local engine mismatch as a warning and checks actual li
   symlinkSync(PACKAGE_ROOT, join(ws.root, 'node_modules/excudo-works'), 'junction');
   const result = await doctor(ws.root); assert.equal(result.ok, true);
   assert.ok(result.checks.filter(x => x.id.startsWith('skill:')).every(x => x.status === 'ok'));
-  assert.equal(supportedEngine('0.7.0'), true); assert.equal(supportedEngine('0.6.0'), false); assert.equal(supportedEngine('0.8.0'), false);
+  assert.equal(supportedEngine('0.8.0'), true); assert.equal(supportedEngine('0.7.0'), false); assert.equal(supportedEngine('0.9.0'), false);
 });
 test('offline update is successful and migrates without changing user config', async t => {
   const ws = await workspace(t); await initWorkspace(ws.root); const before = readFileSync(join(ws.root, 'excudo.config.mjs'), 'utf8');
   const result = await update(ws, { registry: { code: 1, output: 'offline' }, apply: true });
   assert.equal(result.ok, true); assert.equal(result.offline, true); assert.equal(result.records, 2); assert.deepEqual(result.commands, []);
   assert.equal(readFileSync(join(ws.root, 'excudo.config.mjs'), 'utf8'), before);
-  const online = await update(ws, { registry: { code: 0, output: '"0.2.0"' } }); assert.match(online.commands[0], /--save-exact excudo-works@0.2.0/);
+  const online = await update(ws, { registry: { code: 0, output: '"0.3.0"' } }); assert.match(online.commands[0], /--save-exact excudo-works@0.3.0/);
 });
 test('feedback creates a local draft and URL without putting diagnostics in the URL', async t => {
   const ws = await workspace(t); const result = await feedback(ws.root, { engine: { code: 1, output: 'not supported' } });

@@ -1,27 +1,34 @@
 # excudo-works
 
+English | [한국어](README.ko.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
+
 Turn an Excudo workspace into a daily automation routine, with reports you can edit and decisions you control.
 The kit works with ordinary files and command-line agents on macOS, Linux and Windows.
-It requires Node 22.16 or later and Excudo `^0.7.0`.
-
-[한국어 안내](README.ko.md)
+It requires Node 22.16 or later and Excudo `^0.8.0`.
 
 ## Start
 
-Install the kit beside the engine, then initialize a workspace.
+Create the workspace with the engine first, then add the kit inside it. Nothing is installed in the folder you start from.
 
 ```sh
-npm install --save-dev excudo@^0.7.0 excudo-works
-npx --no-install excudo-works init my-work --locale en
+npx -y excudo@^0.8.0 init my-work --locale en
 cd my-work
-npm install --save-dev excudo@^0.7.0 excudo-works
+npm install
+git init
+npx --no-install excudo start --report --json
+npm install --save-dev excudo-works@^0.2.0
+npx --no-install excudo-works init . --locale en
 npx --no-install excudo-works doctor
 npx --no-install excudo-works run --manual --only report
 ```
 
 `init` calls the locally available engine to initialize a new workspace.
-If the engine cannot run, it prints the engine initialization command and stops without inventing an engine workspace.
+With no engine found, it prints the same commands as above in order (`npx -y excudo@<range> init <folder> --locale <l>`, `cd <folder>`, `npm install`, `git init`, `npx --no-install excudo start --report --json`, `npm install --save-dev excudo-works@^<version>`, `npx --no-install excudo-works init . --locale <l>`) and leaves no folder behind.
+If an engine is found but its initialization fails, it prints the last 2000 characters of the engine output and no install commands.
 Run the printed install commands before using the linked skills.
+
+If `doctor` shows an `activity` warning, turn on `conversations` in `excudo.config.mjs`.
+The engine then reads your requests to coding agents, learns from them and creates skills.
 
 Existing configuration, policy and user skill folders are preserved.
 
@@ -31,6 +38,28 @@ The engine owns memo capture, source handling and reflection.
 It also owns skill upkeep, task queues, mirrors and agent preferences.
 
 This kit calls engine commands or installed engine skills; it supplies the routine around them.
+
+## Install with a coding agent
+
+Paste this sentence into your coding agent:
+
+> Set up Excudo Works from https://github.com/cudoment/excudo-works in a new folder, following its README section "Install with a coding agent"
+
+The agent follows these rules:
+
+- Require Node 22.16 or later (https://nodejs.org) and stop with that link if it is older.
+- Ask once for the folder name and the language of the files and memo (`en` or `ko`). Use `ko` only if the owner reads Korean; otherwise use `en`. Use the folder name in place of `my-work` and that language in place of both `--locale` values; change nothing else.
+- Keep talking to the owner in the owner's own language (Japanese, Chinese or any other), whichever `--locale` value the files use.
+- Install nothing globally; use only `npx -y` and project-local `npm install`.
+- Run the first command from "Start", `npx -y excudo@^0.8.0 init my-work --locale en`. Resolve the full path of the new folder once after `init` (for example the current folder plus `my-work`). Run every command after it inside that folder, in two lines. Each line starts with `cd <absolute folder path>`, with the full path in place of the placeholder, so it works whatever folder the shell is in.
+- Line 1 installs the engine and reports its state; `init` does not run git, so `git init` is part of it:
+  `cd <absolute folder path> && npm install && git init && npx --no-install excudo start --report --json`
+- Read the report. It shows the steps `workspace`, `install`, `git` and `skills`; each must be `done`. `start --report` exits 0 either way, so check the steps yourself. If one is not `done`, stop, show its `id` and `state` and ask the owner. Do not run line 2.
+- Only when all four are `done`, run line 2, which installs the kit:
+  `cd <absolute folder path> && npm install --save-dev excudo-works@^0.2.0 && npx --no-install excudo-works init . --locale en && npx --no-install excudo-works doctor && npx --no-install excudo-works run --manual --only report`
+- The setup is verified when the four report steps are `done` and `doctor` passes.
+- On a failed command, stop and show the tail of the error output instead of guessing a fix.
+- Tell the owner the next step: open the generated `weekly.md` and handle any `doctor` warning, such as `activity`.
 
 ## Commands
 
@@ -63,6 +92,8 @@ Registry failure is reported as offline and does not fail the command.
 A new release's engine peer range is checked, and its engine installation is included when needed.
 Dropped kit-owned skill links are removed; changed user links are preserved.
 Remote release notes are linked; the printed changelog belongs to the installed release.
+Changes that need your action are listed first, under "Owner action", in the changelog and in the `ownerActions` field that `update` prints first, a list of `{ version, items }` with the newest release first; after `--apply` it covers every release since the previous one.
+The workspace records the kit version at `init` and `update`, so a plain `update` after a manual upgrade also lists the releases you skipped.
 
 `feedback` includes the engine feedback output when supported and a kit diagnostic summary.
 Older engines get a diagnostic fallback and a version warning.

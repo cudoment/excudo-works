@@ -5,12 +5,26 @@ import { fileURLToPath } from 'node:url';
 import { join, resolve } from 'node:path';
 import { sync, runCommand } from '../src/process.mjs';
 import { scan } from './denylist.mjs';
+import { engineProblems } from './engine-link.mjs';
 export function registryProblems(manifest, lock) {
   const problems = [];
   const registrySpec = spec => typeof spec === 'string' && /^(?:[~^<>=*v\d]|[a-z][a-z\d-]*$|npm:)/i.test(spec) && (!/[\\/:]/.test(spec) || spec.startsWith('npm:')) && !/(?:file:|link:|workspace:|https?:|git\+|github:|gitlab:|^\.\.?[\\/]|^[\\/]|^~[\\/])/.test(spec);
   for (const field of ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']) for (const [name, spec] of Object.entries(manifest[field] ?? {})) if (!registrySpec(spec)) problems.push(`${field}.${name} must use a registry version.`);
   for (const [name, entry] of Object.entries(lock?.packages ?? {})) {
     if (entry.link || entry.resolved && !/^https:\/\/registry\.npmjs\.org\//.test(entry.resolved)) problems.push(`Lock entry ${name} is not a registry package.`);
+  }
+  return problems;
+}
+export const denylistDetail = privacy => !privacy.ok ? 'Restricted content was found; run npm run denylist.' : privacy.skipped ? 'Private-list scan skipped: private/denylist.txt is missing, so nothing was checked.' : 'Private-list scan passed.';
+// All four READMEs must show the engine peer range (Start commands and the requirement line) and this release's major.minor.
+export const README_FILES = ['README.md', 'README.ko.md', 'README.ja.md', 'README.zh-CN.md'];
+export function readmeRangeProblems(manifest, readmes) {
+  const problems = [], peer = manifest.peerDependencies?.excudo, [major, minor] = String(manifest.version).split('.');
+  for (const [name, text] of Object.entries(readmes)) {
+    const engine = [...text.matchAll(/(?<![\w-])excudo@(\^\d+\.\d+\.\d+)/g), ...text.matchAll(/Excudo `(\^\d+\.\d+\.\d+)`/g)].map(x => x[1]);
+    const kit = [...text.matchAll(/excudo-works@(\^\d+\.\d+\.\d+)/g)].map(x => x[1]);
+    if (!engine.length || engine.some(range => range !== peer)) problems.push(`${name} must use excudo@${peer} everywhere it names the engine range.`);
+    if (!kit.length || kit.some(range => range !== `^${major}.${minor}.0`)) problems.push(`${name} must use excudo-works@^${major}.${minor}.0; raise the README ranges for a new minor.`);
   }
   return problems;
 }
@@ -39,7 +53,9 @@ export async function releaseCheck(root) {
   const cliVersion = sync(process.execPath, ['bin/excudo-works.mjs', '--version'], root);
   add('cli-version', cliVersion.status === 0 && cliVersion.stdout.trim() === manifest.version, 'CLI version must match package.json.');
   const deps = registryProblems(manifest, lock); add('registry', deps.length === 0, deps.join(' ') || 'Dependencies use registry versions.');
-  const privacy = scan(root); add('denylist', privacy.ok, privacy.ok ? 'Private-list scan passed.' : 'Restricted content was found; run npm run denylist.');
+  const engine = engineProblems(root, manifest.peerDependencies?.excudo); add('engine', engine.length === 0, engine.join(' ') || 'The installed engine is a published release inside the peer range.');
+  const ranges = readmeRangeProblems(manifest, Object.fromEntries(README_FILES.map(name => [name, readFileSync(join(root, name), 'utf8')]))); add('readme-ranges', ranges.length === 0, ranges.join(' ') || 'All four READMEs match the engine peer range and the kit version.');
+  const privacy = scan(root); add('denylist', privacy.ok, denylistDetail(privacy));
   const changelog = sync(process.execPath, ['scripts/changelog.mjs', '--check'], root); add('changelog', changelog.status === 0, 'Generated changelog must be current.');
   if (checks.every(x => x.ok)) {
     const tests = await runCommand(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['test'], { cwd: root, timeoutMs: 300000, shell: process.platform === 'win32' });

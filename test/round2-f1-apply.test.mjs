@@ -11,7 +11,7 @@ function installNextRelease(root) {
   const target = join(root, 'node_modules/excudo-works');
   mkdirSync(target, { recursive: true });
   for (const name of ['bin', 'src', 'skills', 'template', 'scripts', 'package.json', 'CHANGELOG.md']) cpSync(resolve(name), join(target, name), { recursive: true });
-  const pkg = JSON.parse(read(join(target, 'package.json'))); pkg.version = '0.2.0'; writeFileSync(join(target, 'package.json'), JSON.stringify(pkg));
+  const pkg = JSON.parse(read(join(target, 'package.json'))); pkg.version = '0.3.0'; writeFileSync(join(target, 'package.json'), JSON.stringify(pkg));
   const names = join(target, 'src/skill-check.mjs'); writeFileSync(names, read(names).replace("export const skillNames = ['works-daily',", "export const skillNames = ['works-next-extra', 'works-daily',"));
   mkdirSync(join(target, 'skills/works-next-extra'), { recursive: true }); writeFileSync(join(target, 'skills/works-next-extra/SKILL.md'), '# next\n');
   const state = join(target, 'src/state.mjs'), text = read(state);
@@ -19,7 +19,7 @@ function installNextRelease(root) {
 }
 test('F1: update --apply refreshes links and migrations with the newly installed release', async t => {
   const ws = await workspace(t); await initWorkspace(ws.root);
-  const result = await update(ws, { apply: true, registry: { code: 0, output: '"0.2.0"' }, execute: async (command, args) => { assert.ok(args.includes('install')); installNextRelease(ws.root); return { code: 0, output: '' }; } });
+  const result = await update(ws, { apply: true, registry: { code: 0, output: '"0.3.0"' }, execute: async (command, args) => { assert.ok(args.includes('install')); installNextRelease(ws.root); return { code: 0, output: '' }; } });
   assert.equal(result.ok, true, JSON.stringify(result)); assert.equal(result.applied, true);
   assert.equal(JSON.parse(read(join(ws.root, '.excudo/works/records.json'))).fromNextRelease, true);
   assert.ok(lstatSync(join(ws.root, '.agents/skills/works-next-extra')).isSymbolicLink());
@@ -27,12 +27,12 @@ test('F1: update --apply refreshes links and migrations with the newly installed
 });
 test('F1: a failed refresh in the new release reports the printed follow-up command', async t => {
   const ws = await workspace(t); await initWorkspace(ws.root);
-  const result = await update(ws, { apply: true, registry: { code: 0, output: '"0.2.0"' }, execute: async () => { installNextRelease(ws.root); writeFileSync(join(ws.root, 'node_modules/excudo-works/src/update.mjs'), 'throw new Error("broken release");'); return { code: 0, output: '' }; } });
+  const result = await update(ws, { apply: true, registry: { code: 0, output: '"0.3.0"' }, execute: async () => { installNextRelease(ws.root); writeFileSync(join(ws.root, 'node_modules/excudo-works/src/update.mjs'), 'throw new Error("broken release");'); return { code: 0, output: '' }; } });
   assert.equal(result.ok, false); assert.match(result.detail, /excudo-works update/); assert.equal(existsSync(join(ws.root, '.excudo/works/run.lock')), false);
 });
 test('F3: the refresh launch interface of 0.1.0 stays fixed and ignores extra stdout', async t => {
   const ws = await workspace(t); await initWorkspace(ws.root); let launched;
-  const result = await update(ws, { apply: true, force: true, registry: { code: 0, output: '"0.2.0"' }, execute: async () => ({ code: 0, output: '' }), launch: async (command, args, options) => {
+  const result = await update(ws, { apply: true, force: true, registry: { code: 0, output: '"0.3.0"' }, execute: async () => ({ code: 0, output: '' }), launch: async (command, args, options) => {
     launched = { command, args, env: options.env };
     writeFileSync(options.env.EXCUDO_WORKS_RESULT_FILE, JSON.stringify({ ok: true, records: 2, links: [], instructions: [] }));
     return { code: 0, output: 'A notice before any JSON\n{"ok":false}' };
@@ -44,8 +44,8 @@ test('F3: the refresh launch interface of 0.1.0 stays fixed and ignores extra st
 });
 test('F4: a successful apply keeps the registry facts and attaches the refresh result', async t => {
   const ws = await workspace(t); await initWorkspace(ws.root);
-  const result = await update(ws, { apply: true, registry: { code: 0, output: '"0.2.0"' }, execute: async () => { installNextRelease(ws.root); return { code: 0, output: '' }; } });
-  assert.equal(result.latest, '0.2.0'); assert.equal(result.offline, false); assert.match(result.commands[0], /excudo-works@0\.2\.0/);
+  const result = await update(ws, { apply: true, registry: { code: 0, output: '"0.3.0"' }, execute: async () => { installNextRelease(ws.root); return { code: 0, output: '' }; } });
+  assert.equal(result.latest, '0.3.0'); assert.equal(result.offline, false); assert.match(result.commands[0], /excudo-works@0\.3\.0/);
   assert.equal(result.refreshed.ok, true); assert.equal(result.refreshed.records, 3);
 });
 test('F3: the child writes its result file when the environment names one', async t => {
@@ -53,4 +53,17 @@ test('F3: the child writes its result file when the environment names one', asyn
   const { spawnSync } = await import('node:child_process');
   const run = spawnSync(process.execPath, [resolve('bin/excudo-works.mjs'), 'update', '--refresh-only', '--root', ws.root], { encoding: 'utf8', env: { ...process.env, EXCUDO_WORKS_RESULT_FILE: file } });
   assert.equal(run.status, 0, run.stderr); assert.equal(JSON.parse(read(file)).ok, true);
+});
+test('update --apply lists the owner actions of every version since the previous one, including a skipped version', async t => {
+  const ws = await workspace(t); await initWorkspace(ws.root);
+  const result = await update(ws, { apply: true, registry: { code: 0, output: '"0.4.0"' }, execute: async () => {
+    installNextRelease(ws.root);
+    const target = join(ws.root, 'node_modules/excudo-works'), pkg = JSON.parse(read(join(target, 'package.json'))); pkg.version = '0.4.0'; writeFileSync(join(target, 'package.json'), JSON.stringify(pkg));
+    writeFileSync(join(target, 'CHANGELOG.md'), '# Changelog\n\n## 0.4.0 - d\n\nThis release includes the following changes.\n\n### Owner action\n\n- Config: Rename the key.\n\n### Other changes\n\n- More.\n\n## 0.3.0 - d\n\nThis release includes the following changes.\n\n### Owner action\n\n- Backup: Set up again.\n\n## 0.2.0 - d\n\nThis release includes the following changes.\n\n### Owner action\n\n- Old: Already applied.\n');
+    return { code: 0, output: '' };
+  } });
+  assert.equal(result.ok, true, JSON.stringify(result)); assert.equal(result.applied, true);
+  assert.deepEqual(result.ownerActions, [{ version: '0.4.0', items: ['Config: Rename the key.'] }, { version: '0.3.0', items: ['Backup: Set up again.'] }]);
+  assert.equal(Object.keys(result)[1], 'ownerActions');
+  assert.match(result.changelog, /## 0\.4\.0 -/);
 });

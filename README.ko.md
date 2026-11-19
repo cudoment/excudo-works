@@ -1,29 +1,59 @@
 # excudo-works
 
+[English](README.md) | 한국어 | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
+
 Excudo 작업 공간에 일일 자동화와 편집할 수 있는 주간 보고를 더합니다.
 사용자가 원칙과 판단 기준을 정합니다.
-Node 22.16 이상과 Excudo `^0.7.0`이 필요합니다.
+Node 22.16 이상과 Excudo `^0.8.0`이 필요합니다.
 
 macOS, Linux와 Windows에서 실행합니다.
 
 ## 시작
 
-엔진과 키트를 설치한 뒤 작업 공간을 만듭니다.
+엔진으로 작업 공간을 먼저 만든 뒤 그 안에 키트를 설치합니다. 지금 있는 폴더에는 아무것도 설치하지 않습니다.
 
 ```sh
-npm install --save-dev excudo@^0.7.0 excudo-works
-npx --no-install excudo-works init my-work --locale ko
+npx -y excudo@^0.8.0 init my-work --locale ko
 cd my-work
-npm install --save-dev excudo@^0.7.0 excudo-works
+npm install
+git init
+npx --no-install excudo start --report --json
+npm install --save-dev excudo-works@^0.2.0
+npx --no-install excudo-works init . --locale ko
 npx --no-install excudo-works doctor
 npx --no-install excudo-works run --manual --only report
 ```
 
-`init`은 새 폴더에서 엔진 초기화를 먼저 실행합니다.
-엔진을 실행할 수 없으면 필요한 명령을 출력합니다.
+`init`은 설치된 엔진으로 작업 공간을 초기화합니다.
+엔진을 찾지 못하면 위와 같은 순서로 명령(`npx -y excudo@<범위> init <폴더> --locale <언어>`, `cd <폴더>`, `npm install`, `git init`, `npx --no-install excudo start --report --json`, `npm install --save-dev excudo-works@^<버전>`, `npx --no-install excudo-works init . --locale <언어>`)를 출력하고, 빈 폴더를 남기지 않습니다.
+엔진을 찾았지만 초기화에 실패하면 엔진 출력의 마지막 2000자를 출력하고 설치 명령은 출력하지 않습니다.
 기존 설정과 사용자 파일은 보존합니다.
-
 스킬 링크를 쓰기 전에 안내한 설치 명령을 실행합니다.
+
+`doctor`가 `activity` 경고를 보이면 `excudo.config.mjs`에서 `conversations`를 켭니다.
+그러면 엔진이 코딩 에이전트에 보낸 요청을 읽고 학습해서 스킬을 만듭니다.
+
+## 코딩 에이전트로 설치
+
+코딩 에이전트에 다음 문장을 붙여 넣습니다.
+
+> Set up Excudo Works from https://github.com/cudoment/excudo-works in a new folder, following its README section "Install with a coding agent"
+
+에이전트는 다음 규칙을 따릅니다.
+
+- Node 22.16 이상(https://nodejs.org)을 요구하고, 낮으면 그 링크를 안내한 뒤 멈춥니다.
+- 폴더 이름과 파일과 메모에 쓸 언어(`en` 또는 `ko`)를 한 번만 묻습니다. 사용자가 한국어를 읽을 때만 `ko`를 쓰고, 그렇지 않으면 `en`을 씁니다. 폴더 이름은 `my-work` 자리에, 언어는 두 `--locale` 값 자리에 넣고 다른 것은 바꾸지 않습니다.
+- `--locale` 값과 관계없이 사용자의 언어(일본어, 중국어 등 어떤 언어든)로 계속 대화합니다.
+- 전역 설치를 하지 않고 `npx -y`와 프로젝트 안의 `npm install`만 씁니다.
+- "시작"의 첫 명령 `npx -y excudo@^0.8.0 init my-work --locale ko`를 실행합니다. `init` 뒤에 새 폴더의 전체 경로를 한 번 구합니다(예: 현재 폴더에 `my-work`를 붙인 경로). 그 뒤의 명령은 모두 그 폴더 안에서 두 줄로 실행합니다. 각 줄은 `cd <절대 경로>`로 시작하며 자리 표시자 대신 전체 경로를 넣으므로, 셸이 어느 폴더에 있어도 실행됩니다.
+- 첫째 줄은 엔진을 설치하고 상태를 보고합니다. `init`은 git을 실행하지 않으므로 `git init`이 여기에 들어 있습니다.
+  `cd <absolute folder path> && npm install && git init && npx --no-install excudo start --report --json`
+- 보고를 읽습니다. `workspace`, `install`, `git`, `skills` 단계가 모두 `done`이어야 합니다. `start --report`는 어느 쪽이든 종료 코드 0이므로 단계를 직접 확인합니다. 하나라도 `done`이 아니면 멈추고 그 `id`와 `state`를 보여 준 뒤 사용자에게 묻습니다. 둘째 줄은 실행하지 않습니다.
+- 네 단계가 모두 `done`일 때만 키트를 설치하는 둘째 줄을 실행합니다.
+  `cd <absolute folder path> && npm install --save-dev excudo-works@^0.2.0 && npx --no-install excudo-works init . --locale ko && npx --no-install excudo-works doctor && npx --no-install excudo-works run --manual --only report`
+- 보고의 네 단계가 `done`이고 `doctor`가 통과하면 설치가 확인된 것입니다.
+- 명령이 실패하면 해결을 추측하지 않고 멈춰서 오류 출력의 끝부분을 보여 줍니다.
+- 다음 단계를 알려 줍니다: 생성된 `weekly.md`를 열고 `activity` 같은 `doctor` 경고를 처리합니다.
 
 ## 명령
 
@@ -40,6 +70,8 @@ npx --no-install excudo-works run --manual --only report
 
 `update`는 네트워크가 없어도 로컬 기록과 링크를 갱신합니다.
 설치된 버전의 변경 기록과 새 버전 설치 명령을 보여 줍니다.
+설치한 버전에서 사용자가 직접 해야 할 변경은 변경 기록의 "Owner action" 아래에 먼저 나오고, `update`도 `ownerActions` 필드로 가장 먼저 출력합니다. 이 필드는 최신 릴리스부터 `{ version, items }` 목록입니다.
+작업 공간은 `init`과 `update` 때 키트 버전을 기록하므로, 직접 업그레이드한 뒤 `update`를 실행해도 건너뛴 릴리스를 함께 보여 줍니다. `--apply` 뒤에는 이전 버전 이후의 모든 릴리스를 포함합니다.
 `--apply`는 안내한 설치 명령을 실행한 뒤 새 버전을 별도 프로세스로 띄워 링크와 기록을 갱신합니다.
 
 `feedback`은 초안만 만들며 외부로 보내지 않습니다.

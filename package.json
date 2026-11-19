@@ -1,6 +1,6 @@
 {
   "name": "excudo-works",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A configurable daily automation routine for an Excudo workspace.",
   "type": "module",
   "license": "MIT",
@@ -10,14 +10,18 @@
   "engines": { "node": ">=22.16" },
   "bin": { "excudo-works": "bin/excudo-works.mjs" },
   "exports": { ".": "./src/index.mjs", "./checks": "./src/skill-check.mjs" },
-  "files": ["bin", "src", "skills", "template", "scripts/push-guard.mjs", "README.md", "README.ko.md", "CHANGELOG.md", "LICENSE"],
+  "files": ["bin", "src", "skills", "template", "scripts/push-guard.mjs", "README.md", "README.ko.md", "README.ja.md", "README.zh-CN.md", "CHANGELOG.md", "LICENSE"],
   "scripts": {
     "test": "node --test --test-concurrency=1 test/*.test.mjs",
     "changelog": "node scripts/changelog.mjs",
     "denylist": "node scripts/denylist.mjs",
+    "engine:status": "node scripts/engine-link.mjs status",
+    "engine:local": "node scripts/engine-link.mjs local",
+    "engine:registry": "node scripts/engine-link.mjs registry",
+    "test:install": "node scripts/install-test.mjs",
     "release:check": "node scripts/release-check.mjs",
     "prepublishOnly": "node scripts/release-check.mjs"
   },
-  "peerDependencies": { "excudo": "^0.7.0" },
-  "devDependencies": { "excudo": "^0.7.0" }
+  "peerDependencies": { "excudo": "^0.8.0" },
+  "devDependencies": { "excudo": "^0.8.0" }
 }
